@@ -1,0 +1,222 @@
+#include<bits/stdc++.h>
+using namespace std;
+//class for defining the order made
+class order {
+public:
+    pair<int, int> location;
+    int restaurent_number;
+    bool isPriority;
+    int menu_number;
+
+    static int count;//for the delivery number
+    string status;
+
+    order(pair<int, int> user_location, int rest_no, bool is_prior, int menu_num);
+};
+
+
+queue<order*> normal_orders;
+queue<order*> priority_orders;
+
+int order::count = 0;
+
+// Define constructor after queues are declared
+order::order(pair<int, int> user_location, int rest_no, bool is_prior, int menu_num) {
+    location = user_location;
+    restaurent_number = rest_no;
+    isPriority = is_prior;
+    menu_number = menu_num;
+    status = "INITIATED";
+    count += 1;
+
+    if (isPriority) {
+        priority_orders.push(this);
+    } else {
+        normal_orders.push(this);
+    }
+}
+
+//class for defining the delivery partner
+class delivery_partner{
+    public:
+        string name;
+        bool isAvailable;
+        pair<int, int> coordinates;
+
+        delivery_partner(string n, int x, int y){
+            name = n;
+            isAvailable = true;
+            coordinates.first = x;
+            coordinates.second = y;
+        }
+};
+//2 delivery partners
+delivery_partner dp1("dp1",2,2);
+delivery_partner dp2("dp2",3,3);
+
+//here we assign orders to the delivery agents based on the distance of them
+void assignorders(){
+    while(!priority_orders.empty()){
+        if((dp1.isAvailable)&&(dp2.isAvailable)){
+            order a = *(priority_orders.front());
+            cout << "order number " << a.count << " is deployed";
+            a.status = "DEPLOYED";
+            int dist1 = sqrt(pow(dp1.coordinates.first - a.location.first, 2) + pow(dp1.coordinates.second - a.location.second, 2));
+            int dist2 = sqrt(pow(dp2.coordinates.first - a.location.first, 2) + pow(dp2.coordinates.second - a.location.second, 2));
+            if(dist1 < dist2){
+                dp1.isAvailable = false;
+                cout<< "order number " << a.count << " is assigned dp1 as delivery partner";
+                cout<< "order number " << a.count << " is delivered";
+                a.status = "DELIVERED";
+            }
+            else{
+                dp2.isAvailable = false;
+                cout<< "order number " << a.count << " is assigned dp2 as delivery partner";
+                cout<< "order number " << a.count << " is delivered";
+                a.status = "DELIVERED";
+            }
+        }
+        priority_orders.pop();
+    }
+    
+    while(!normal_orders.empty()){
+        if((dp1.isAvailable)&&(dp2.isAvailable)){
+            order a = *(normal_orders.front());
+            cout << "order number " << a.count << " is deployed";
+            a.status = "DEPLOYED";
+            int dist1 = sqrt(pow(dp1.coordinates.first - a.location.first, 2) + pow(dp1.coordinates.second - a.location.second, 2));
+            int dist2 = sqrt(pow(dp2.coordinates.first - a.location.first, 2) + pow(dp2.coordinates.second - a.location.second, 2));
+            if(dist1 < dist2){
+                dp1.isAvailable = false;
+                cout<< "order number " << a.count << " is assigned dp1 as delivery partner";
+                cout<< "order number " << a.count << " is delivered";
+                a.status = "DELIVERED";
+            }
+            else{
+                dp2.isAvailable = false;
+                cout<< "order number " << a.count << " is assigned dp2 as delivery partner";
+                cout<< "order number " << a.count << " is delivered";
+                a.status = "DELIVERED";
+            }
+        }
+        normal_orders.pop();
+    }
+}
+//class for defining the menu
+class menu{
+    public:
+        string name;
+        int price;
+        menu(string item_name, int item_price){
+            name = item_name;
+            price = item_price;
+        }
+};
+//class for defining the restaurent
+class restaurent{
+    public:
+        string name;
+        pair<int, int> location;
+        vector<menu> menu_list;
+
+        restaurent(string r_name, pair<int, int> r_location, vector<menu> r_menu_list){
+            name = r_name;
+            location = r_location;
+            menu_list = r_menu_list;
+        }
+
+        bool accept_order(){
+            //always accepting order for simplicity
+            std::cout << "Order Accepted";
+            return true;
+        }
+};
+
+// 2 restaurents, 2 delivery agents 
+vector<menu> menu_r1 = {{"Idli", 90}, {"Dosa", 150}, {"Vada", 130}};
+vector<menu> menu_r2 = {{"Pizza", 200}, {"Burger", 180}, {"Sandwich", 160}};
+
+restaurent r1("southside", {0,0}, menu_r1);
+restaurent r2("foodies", {10,10}, menu_r2);
+//calculating the price
+int cal_price(order new_order){
+    if(new_order.restaurent_number == 1){
+        int dist = sqrt(pow(r1.location.first - new_order.location.first, 2) + pow(r1.location.second - new_order.location.second, 2));
+        if(new_order.isPriority == 1){
+            int price = ((dist*2)+(menu_r1[new_order.menu_number].price))*2;
+            // 2rs for 1unit of distance of delivery and for priority total price *2
+            return price;}
+        else{
+            int price = ((dist*2)+(menu_r1[new_order.menu_number].price));
+            return price;
+        }
+    }
+    else{
+        int dist = sqrt(pow(r2.location.first - new_order.location.first, 2) + pow(r2.location.second - new_order.location.second, 2));
+        if(new_order.isPriority == 1){
+            int price = ((dist*2)+(menu_r2[new_order.menu_number].price))*2;
+            // 2rs for 1unit of distance of delivery and for priority total price *2
+            return price;}
+        else{
+            int price = ((dist*2)+(menu_r2[new_order.menu_number].price));
+            return price;
+        }
+    }    
+        
+}
+
+
+int main(){
+    int number_of_orders = 5;//i am simulating this for 5 orders, can use while(1) for continuous loop run
+    while(number_of_orders){
+        std::cout << "Hi There !";
+        std::cout << "\n1.Place Order \n2.Check Order Status";
+        std::cout << "\nEnter your choice number";
+        int choice;
+        std::cin >> choice;
+        if(choice == 1){
+            std::cout << "choose restaurent";
+            std::cout << "\n1.southside 2.foodies";
+            std::cout << "\nEnter your choice number";
+            int restidx;
+            std::cin >> restidx;
+
+            std::cout << "choose item";
+            int menuidx;
+            if(restidx == 1){
+                std::cout << "\n1.Idli \n2.Dosa \n3.Vada";
+                std::cout << "\nEnter your choice number";
+                std::cin >> menuidx;
+            }
+            else{
+                std::cout << "\n1.Pizza \n2.Burger \n3.Sandwich";
+                std::cout << "\nEnter your choice number";
+                std::cin >> menuidx;
+            }
+
+            std::cout << "Enter your location in the form x y";
+            pair <int, int> user_location;
+            std::cin >> user_location.first >> user_location.second;
+
+            std::cout << "Is this a priority order";
+            std::cout << "\nEnter 1 for Yes and 2 for No";
+            int prio;
+            std::cin >> prio;
+
+            order new_order(user_location, restidx, prio, menuidx );
+            new_order.status = "ACCEPTED";
+            int price = cal_price(new_order);
+            std::cout << "The total price is " << price;
+            assignorders();
+        }
+        else if(choice == 2){
+            cout << "Enter Order Number";
+            int order_number;
+            cin >> order_number;
+            cout << "Your order status is DELIVERED";
+        }
+        number_of_orders--;
+    }
+    
+
+}
